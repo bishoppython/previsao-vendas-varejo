@@ -40,4 +40,30 @@ ax.bar_label(b, labels=[f"{x:+.1f}%".replace(".", ",") for x in v], padding=3, c
 ax.axhline(0, color=MUTED, lw=1); ax.set_ylim(-17, 24); ax.grid(axis="x", visible=False)
 ax.set_ylabel("Diferença p/ média do ano"); ax.set_title("Perfil sazonal das vendas")
 fig.tight_layout(); fig.savefig(img / "sazonalidade.png"); plt.close(fig)
-print("OK: docs/img/previsao.png, docs/img/sazonalidade.png")
+bt = pd.DataFrame(m["backtest"]["detail"]); bt["ano"] = bt.origin.str[:4].astype(int) + 1
+estilo = {"Sazonal ingênuo (base)": (NEUTRAL, "--", "s", 0), "Holt-Winters (ETS)": (COBALT, "-", "o", 0.18),
+          "SARIMA": (AMBER, "-", "D", -0.18)}
+fig, ax = plt.subplots(figsize=(9, 3.8), dpi=150)
+for nome, (cor, ls, mk, dy) in estilo.items():
+    g = bt[bt.model == nome]
+    ax.plot(g.ano, g.mape, color=cor, ls=ls, lw=2, marker=mk, ms=7, label=nome)
+    ax.text(g.ano.iloc[-1] + 0.12, g.mape.iloc[-1] + dy, nome.split(" (")[0], va="center", color=INK, fontsize=9)
+ax.set_xticks(bt.ano.unique()); ax.set_xticklabels([f"jun/{a-1}–mai/{a}" for a in bt.ano.unique()], fontsize=9)
+ax.set_xlim(bt.ano.min() - 0.3, bt.ano.max() + 1.1); ax.set_ylim(0, 7.2)
+ax.yaxis.set_major_formatter(lambda x, _: f"{x:.0f}%"); ax.set_ylabel("MAPE (12 meses)")
+ax.legend(frameon=False, ncol=3, loc="upper right", fontsize=9)
+ax.set_title("Backtest: erro de cada modelo em 5 anos que ele não viu")
+fig.tight_layout(); fig.savefig(img / "backtest.png"); plt.close(fig)
+
+y = [r for r in m["yearly"] if r["yoy_pct"] == r["yoy_pct"]]
+fig, ax = plt.subplots(figsize=(9, 3.4), dpi=150)
+b = ax.bar([str(r["year"]) for r in y], [r["yoy_pct"] for r in y], color=[AMBER if r["yoy_pct"] < 0 else COBALT for r in y], width=0.65)
+ax.axhline(0, color=MUTED, lw=1); ax.axhline(m["cagr_full_years_pct"], color=NEUTRAL, lw=1.2, ls="--")
+ax.text(len(y) - 0.4, m["cagr_full_years_pct"] + 0.4, f'média {m["cagr_full_years_pct"]:.1f}'.replace(".", ",") + "% a.a.",
+        ha="right", color=MUTED, fontsize=9)
+ax.bar_label(b, labels=[f'{r["yoy_pct"]:+.1f}'.replace(".", ",") if r["yoy_pct"] < 0 else "" for r in y], padding=3, color=INK, fontsize=9)
+ax.tick_params(axis="x", labelrotation=90, labelsize=9); ax.set_ylim(-9.5, 10); ax.grid(axis="x", visible=False)
+ax.yaxis.set_major_formatter(lambda x, _: f"{x:.0f}%"); ax.set_ylabel("Crescimento anual")
+ax.set_title("Crescimento das vendas ano a ano")
+fig.tight_layout(); fig.savefig(img / "crescimento_anual.png"); plt.close(fig)
+print("OK: docs/img/previsao.png, docs/img/sazonalidade.png, docs/img/backtest.png, docs/img/crescimento_anual.png")

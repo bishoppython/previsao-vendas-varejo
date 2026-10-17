@@ -4,6 +4,8 @@
 
 **[Ver o dashboard interativo](https://bishoppython.github.io/previsao-vendas-varejo/)**
 
+[![Dashboard de previsão de vendas](docs/img/dashboard.png)](https://bishoppython.github.io/previsao-vendas-varejo/)
+
 ## 💡 Resumo do projeto
 
 Construí uma previsão de 12 meses para as vendas do varejo dos EUA, com intervalos de confiança e validação honesta. Em 5 testes com dados que o modelo não viu, o **SARIMA errou em média 1,42%** ao prever um ano inteiro, **2,8 vezes menos** que repetir o ano anterior. A previsão indica **+2,5% de crescimento** e um pico de dezembro **18% acima da média**.
@@ -31,10 +33,7 @@ Compras, estoque, contratação temporária e fluxo de caixa dependem de quanto 
 
 ## 🛠️ Metodologia e ferramentas
 
-```
-download + checksum → calendário + série (SQL) → marts anual e sazonal → STL → backtest de 3 modelos → previsão final → dashboard
-      Python                  DuckDB                     DuckDB          statsmodels    statsmodels       statsmodels      Plotly
-```
+![Pipeline de dados](docs/img/pipeline.svg)
 
 1. **Exploração em SQL:** crescimento anual e perfil sazonal, com cada mês comparado à média do próprio ano.
 2. **Decomposição STL** (robusta, em log): separa tendência, sazonalidade e ruído, e mede o choque de 2008.
@@ -57,6 +56,8 @@ download + checksum → calendário + série (SQL) → marts anual e sazonal →
 | Holt-Winters (ETS) | 1,47% | 2,48% | 0,40 |
 | Sazonal ingênuo (base) | 3,95% | 6,56% | 1,07 |
 
+![Erro de cada modelo no backtest](docs/img/backtest.png)
+
 Os dois modelos estatísticos ficam muito próximos, um bom sinal de robustez. O SARIMA foi escolhido por ter o menor erro médio, o menor erro na pior janela e intervalos de confiança nativos.
 
 ### 2. Previsão: +2,5% nos próximos 12 meses
@@ -78,6 +79,8 @@ Os dois modelos estatísticos ficam muito próximos, um bom sinal de robustez. O
 - **Crescimento médio de 4,3% ao ano** entre 1992 e 2015.
 - **Crise de 2008:** a tendência caiu **7,0%** entre dezembro de 2007 e agosto de 2009 e só voltou ao nível anterior em dezembro de 2010. Em 2009, as vendas anuais caíram 7,4%.
 - Desde 2014 o crescimento desacelera (4,2% em 2014 e 2,3% em 2015), o que é coerente com a previsão de +2,5%.
+
+![Crescimento anual das vendas](docs/img/crescimento_anual.png)
 
 ### Recomendações
 
